@@ -1,0 +1,42 @@
+#!/bin/sh
+
+MNPATH="/home/$USER/notes"
+MNEDITOR="nvim"
+
+case $1 in 
+new)
+  printf "Name of your new note? : " && read NEW
+  if [[ $NEW = "^C" ]]; then
+    exit
+  else
+    nvim $MNPATH/"$NEW".md
+  fi
+  ;;
+newcategory)
+  printf "Name of the new category ? : " && read NEWCATEGORY
+  if [[ $NEWCATEGORY = "^C" ]]; then
+    exit
+  else
+    mkdir $MNPATH/$NEWCATEGORY
+  fi
+  ;;
+edit)
+  EDIT=$(find $MNPATH -type f | fzy)
+  if [[ $EDIT = "" ]]; then
+    exit
+  else
+    nvim "$EDIT"
+  fi
+  ;;
+rm)
+  RM=$(find $MNPATH -type f | fzy)
+  if [[ $RM = "" ]]; then
+    exit
+  else 
+    rm "$RM"
+  fi
+  ;;
+*)
+  echo "usage: mn [new,newcategory,edit,delete]"
+  ;;
+esac
