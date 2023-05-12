@@ -5,7 +5,7 @@
 ```
 # first install fzy 
 # sudo pacman -Syu fzy for arch
-sudo curl -sL "https://raw.githubusercontent.com/misopog/mn/files/main/mn" -o "/usr/local/bin/mn"
+sudo curl -sL "https://raw.githubusercontent.com/misopog/mn/main/mn" -o "/usr/local/bin/mn"
 sudo chmod 777 /usr/local/bin/mn
 mkdir ~/notes # can be configured editing the script
 ```
