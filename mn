@@ -1,4 +1,7 @@
 #!/bin/bash
+# mn - a dead simple note taking script
+# misopog 2023
+
 
 # Configuration file
 CONFIG_FILE="$HOME/.config/mn/mnrc"
