@@ -1,42 +1,143 @@
-#!/bin/sh
+#!/bin/bash
 
-MNPATH="/home/$USER/notes"
-MNEDITOR="nvim"
+# Configuration file
+CONFIG_FILE="$HOME/.config/mn/mnrc"
+
+# Check if configuration file exists, create if not
+if [ ! -f "$CONFIG_FILE" ]; then
+    mkdir -p "$(dirname "$CONFIG_FILE")"
+    echo "Please configure mn before first use."
+    
+    # Prompt for notes folder
+    while true; do
+        echo -n "Enter the path to your notes folder: "
+        read NOTES_FOLDER
+
+    # Use eval to interpret ~ as the home directory
+    eval NOTES_FOLDER=$NOTES_FOLDER
+
+        # Ensure the folder exists or create it
+        if [ ! -d "$NOTES_FOLDER" ]; then
+            echo "Notes folder does not exist. Creating..."
+            mkdir -p "$NOTES_FOLDER"
+            break
+        else
+            echo "Notes folder already exists."
+            break
+        fi
+    done
+
+    # Prompt for editor
+    echo -n "Enter your preferred editor: "
+    read EDITOR_NAME
+    
+    echo "NOTES_FOLDER="$NOTES_FOLDER"" > "$CONFIG_FILE"
+    echo "EDITOR_NAME="$EDITOR_NAME"" >> "$CONFIG_FILE"
+    echo "REMOVE_CATEGORY_AFTER_LAST_FILE_IS_DELETED=false" >> "$CONFIG_FILE"
+    echo "Configuration saved in $CONFIG_FILE"
+    exit 0
+fi
+
+# Load configuration
+source "$CONFIG_FILE"
+
+# Function to display menu
+display_menu() {
+    PS3="Select an option: "
+    options=("mn new" "mn edit" "mn remove" "Quit")
+    select opt in "${options[@]}"; do
+        case $opt in
+            "mn new")
+                create_note
+                ;;
+            "mn edit")
+                edit_note
+                ;;
+            "mn remove")
+                remove_note
+                ;;
+            "Quit")
+                exit 0
+                ;;
+            *) echo "Invalid option";;
+        esac
+    done
+}
+
+# Function to create a new note
+create_note() {
+    echo -n "Enter the name of the note: "
+    read note_name
+
+    echo -n "Enter the category (leave blank for root): "
+    read category
+
+
+if [ -z "$category" ]; then
+    note_path="$NOTES_FOLDER/$note_name.md"
+    touch "$note_path"
+   else
+    note_path="$NOTES_FOLDER/$category/$note_name.md"
+     if [ ! -d "$NOTES_FOLDER/$category" ]; then
+        echo "Category folder does not exist. Creating..."
+        mkdir -p "$NOTES_FOLDER/$category"
+     else
+        echo "Category folder already exists."
+     fi
+fi
+
+    echo "Note created"
+    $EDITOR_NAME $note_path
+
+}
+
+# Function to edit an existing note
+edit_note() {
+    PS3="Select a note to edit: "
+    options=($(find "$NOTES_FOLDER" -type f -name "*.md" -exec basename {} \;))
+    select note_file in "${options[@]}"; do
+        if [ -z "$note_file" ]; then
+            echo "Invalid option"
+            return
+        fi
+        $EDITOR_NAME "$note_file"
+        echo "Note edited: $note_file"
+        break
+    done
+}
+
+# Function to remove an existing note
+remove_note() {
+    PS3="Select a note to remove: "
+    options=($(find "$NOTES_FOLDER" -type f -name "*.md" -exec basename {} \;))
+    select note_file in "${options[@]}"; do
+        if [ -z "$note_file" ]; then
+            echo "Invalid option"
+            return
+        fi
+        rm "$NOTES_FOLDER/$note_file"
+        echo "Note removed: $note_file"
+
+    # Check if the category should be removed
+    if [ "$REMOVE_CATEGORY_AFTER_LAST_FILE_IS_DELETED" = true ] && [ -z "$(ls -A "$category")" ]; then
+        rmdir "$category"
+        echo "Category removed: $category"
+    fi 
+    break
+    done
+}
 
 case $1 in 
-new)
-  printf "Name of your new note? : " && read NEW
-  if [[ $NEW = "^C" ]]; then
-    exit
-  else
-    nvim $MNPATH/"$NEW".md
-  fi
-  ;;
-newcategory)
-  printf "Name of the new category ? : " && read NEWCATEGORY
-  if [[ $NEWCATEGORY = "^C" ]]; then
-    exit
-  else
-    mkdir $MNPATH/$NEWCATEGORY
-  fi
-  ;;
-edit)
-  EDIT=$(find $MNPATH -type f | fzy)
-  if [[ $EDIT = "" ]]; then
-    exit
-  else
-    nvim "$EDIT"
-  fi
-  ;;
-rm)
-  RM=$(find $MNPATH -type f | fzy)
-  if [[ $RM = "" ]]; then
-    exit
-  else 
-    rm "$RM"
-  fi
-  ;;
-*)
-  echo "usage: mn [new,newcategory,edit,delete]"
-  ;;
+    new)
+    	create_note
+    ;;
+    edit)
+	edit_note
+    ;;	
+    remove)
+	remove_note
+    ;;
+    *)	
+	display_menu
+    ;;
 esac
