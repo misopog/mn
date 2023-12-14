@@ -1,5 +1,4 @@
-# mn - a dead simple note-taking script
----
+# mn - minimalnotes
 
 ### installation
 
