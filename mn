@@ -47,7 +47,7 @@ source "$CONFIG_FILE"
 # Function to display menu
 display_menu() {
     PS3="Select an option: "
-    options=("mn new" "mn edit" "mn remove" "Quit")
+    options=("mn new" "mn edit" "mn rm" "Quit")
     select opt in "${options[@]}"; do
         case $opt in
             "mn new")
@@ -56,7 +56,7 @@ display_menu() {
             "mn edit")
                 edit_note
                 ;;
-            "mn remove")
+            "mn rm")
                 remove_note
                 ;;
             "Quit")
@@ -137,7 +137,7 @@ case $1 in
     edit)
 	edit_note
     ;;	
-    remove)
+    rm)
 	remove_note
     ;;
     *)	
