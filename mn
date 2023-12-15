@@ -59,7 +59,7 @@ display_menu() {
             "mn rm")
                 remove_note
                 ;;
-            "Quit")
+            "quit" | "q")
                 exit 0
                 ;;
             *) echo "Invalid option";;
