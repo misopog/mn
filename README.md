@@ -11,6 +11,10 @@ sudo chmod 777 /usr/local/bin/mn
 
 the usage is dead simple, to create a note type `mn new`, to edit the note type `mn edit`, to remove the note type `mn rm`, the notes are written in markdown whom syntax is really *really* simple
 
+### config
+
+the config is in ~/.config/mn/mn, you can change some options there
+
 ### uninstall
 
 ```
