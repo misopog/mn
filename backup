@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Configuration file
+CONFIG_FILE="$HOME/.config/mn/mnrc"
+
+if ! grep -q "BACKUPFOLDER" "$CONFIG_FILE"; then
+    echo "BACKUPFOLDER=\"$HOME\"" >> "$CONFIG_FILE"
+else
+    break
+fi
+
+
+# Check if configuration file exists
+if [ -f "$CONFIG_FILE" ]; then
+    # Load configuration
+    source "$CONFIG_FILE"
+else
+    echo "Configuration file not found. Please run mn to configure before using the backup script."
+    exit 1
+fi
+
+# Ensure backup directory exists
+mkdir -p "$BACKUP_DIR"
+
+# Create a tar archive of the notes folder
+BACKUP_FILE="$BACKUP_DIR/notes_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+tar czf "$BACKUP_FILE" -C "$(dirname "$NOTES_FOLDER")" "$(basename "$NOTES_FOLDER")"
+
+echo "Backup created: $BACKUP_FILE"
