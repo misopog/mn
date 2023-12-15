@@ -32,14 +32,19 @@ create_note() {
         read -r category
     fi
 
+    if [ -z "$note_name" ]; then
+        echo "Error: Note name cannot be empty."
+        return
+    fi
+
     if [ -z "$category" ]; then
         note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
-        touch "$note_path"
+        touch "$note_path" || { echo "Error: Unable to create note file."; return; }
     else
         note_path="$NOTES_FOLDER/$category/$note_name.$NOTE_EXTENSION"
         if [ ! -d "$NOTES_FOLDER/$category" ]; then
             echo "Category folder does not exist. Creating..."
-            mkdir -p "$NOTES_FOLDER/$category"
+            mkdir -p "$NOTES_FOLDER/$category" || { echo "Error: Unable to create category folder."; return; }
         else
             echo "Category folder already exists."
         fi
@@ -73,7 +78,7 @@ edit_note() {
 
     if [ -f "$note_path" ]; then
         if command_exists "$EDITOR_NAME"; then
-            "$EDITOR_NAME" "$note_path"
+            "$EDITOR_NAME" "$note_path" || { echo "Error: Unable to open note file."; return; }
             echo "Note edited: $note_path"
         else
             echo "Error: Editor '$EDITOR_NAME' not found."
