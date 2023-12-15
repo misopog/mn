@@ -26,10 +26,10 @@ create_note() {
     else
         # If no arguments, prompt the user for input
         echo -n "Enter the name of the note: "
-        read note_name
+        read -r note_name
 
         echo -n "Enter the category (leave blank for root): "
-        read category
+        read -r category
     fi
 
     if [ -z "$category" ]; then
@@ -124,10 +124,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
     # Prompt for notes folder
     while true; do
         echo -n "Enter the path to your notes folder: "
-        read NOTES_FOLDER
+        read -r NOTES_FOLDER
 
         # Use eval to interpret ~ as the home directory
-        eval NOTES_FOLDER=$NOTES_FOLDER
+        eval NOTES_FOLDER="$NOTES_FOLDER"
 
         # Ensure the folder exists or create it
         if [ ! -d "$NOTES_FOLDER" ]; then
@@ -142,7 +142,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
 
     # Prompt for editor
     echo -n "Enter your preferred editor: "
-    read EDITOR_NAME
+    read -r EDITOR_NAME
 
     # Save configuration with NOTES_FOLDER and EDITOR_NAME
     echo "NOTES_FOLDER=\"$NOTES_FOLDER\"" > "$CONFIG_FILE"
