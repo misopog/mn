@@ -13,7 +13,7 @@ the usage is dead simple, to create a note type `mn new`, to edit the note type 
 
 ### config
 
-the config is in ~/.config/mn/mn, you can change some options there
+the config is in ~/.config/mn/mnrc, you can change some options there
 
 ### uninstall
 
