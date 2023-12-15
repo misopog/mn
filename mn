@@ -33,10 +33,10 @@ create_note() {
     fi
 
     if [ -z "$category" ]; then
-        note_path="$NOTES_FOLDER/$note_name.md"
+        note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
         touch "$note_path"
     else
-        note_path="$NOTES_FOLDER/$category/$note_name.md"
+        note_path="$NOTES_FOLDER/$category/$note_name.$NOTE_EXTENSION"
         if [ ! -d "$NOTES_FOLDER/$category" ]; then
             echo "Category folder does not exist. Creating..."
             mkdir -p "$NOTES_FOLDER/$category"
@@ -147,7 +147,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
     # Save configuration with NOTES_FOLDER and EDITOR_NAME
     echo "NOTES_FOLDER=\"$NOTES_FOLDER\"" > "$CONFIG_FILE"
     echo "EDITOR_NAME=\"$EDITOR_NAME\"" >> "$CONFIG_FILE"
-    echo "REMOVE_CATEGORY_OPTION=false" >> "$CONFIG_FILE"
+    echo "REMOVE_CATEGORY_OPTION="false"" >> "$CONFIG_FILE"
+    echo "NOTE_EXTENSION="md"" >> "$CONFIG_FILE"
     echo "Configuration saved in $CONFIG_FILE"
     
     exit 0
