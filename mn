@@ -6,13 +6,14 @@
 CONFIG_FILE="$HOME/.config/mn/mnrc"
 LOGGING_FILE="$HOME/.cache/mn.log"
 
-# Logging
-log_message() {
     if [[ -e $LOGGING_FILE ]]; then
         printf "\n" >> $LOGGING_FILE
     else
         touch $LOGGING_FILE
     fi
+
+# Logging
+log_message() {
 
     if [ $1 == err ]; then
         printf "[ERROR]: $2\n"
@@ -21,7 +22,7 @@ log_message() {
         printf "[WARNING]: $2\n"
         echo "[WARNING]: $2" >> $LOGGING_FILE
     elif [ $1 == log ]; then
-        printf "[LOG]: $2\n"
+        printf "$2\n"
         echo "[LOG]: $2" >> $LOGGING_FILE
     fi
 }
@@ -131,7 +132,7 @@ remove_note() {
     # Confirm deletion
         read -p "Are you sure you want to remove $note_name? (y/n): " confirm
         if [ "$confirm" != "y" ]; then
-            echo "Removal canceled."
+            log_message log "Removal canceled."
             return
         fi
 
@@ -184,7 +185,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo "REMOVE_CATEGORY_OPTION="false"" >> "$CONFIG_FILE"
     echo "NOTE_EXTENSION="md"" >> "$CONFIG_FILE"
     echo "Configuration saved in $CONFIG_FILE"
-    
+   
+    log_message log "Configuration wizard completed with the notes folder $NOTES_FOLDER and the selected editor $EDITOR_NAME"
     exit 0
 fi
 
