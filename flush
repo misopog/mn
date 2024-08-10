@@ -1,7 +1,0 @@
-#!/bin/bash
-
-source ~/.config/mn/mnrc
-
-rm -r $NOTES_FOLDER
-rm ~/.cache/mn.log
-rm ~/.config/mn/mnrc
