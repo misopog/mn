@@ -55,7 +55,7 @@ create_note() {
     fi
 
     if [ -z "$note_name" ]; then
-        echo "  Note name cannot be empty."
+        log_message err "Note name cannot be empty."
         return
     fi
 
