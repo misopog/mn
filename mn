@@ -1,9 +1,31 @@
 #!/bin/bash
 # mn - a dead simple note-taking script
-# misopog 2023
+# misopog 2024
 
 # Configuration file
 CONFIG_FILE="$HOME/.config/mn/mnrc"
+LOGGING_FILE="$HOME/.cache/mn.log"
+
+# Logging
+log_message() {
+    if [[ -e $LOGGING_FILE ]]; then
+        printf "\n" >> $LOGGING_FILE
+    else
+        touch $LOGGING_FILE
+    fi
+
+    if [ $1 == err ]; then
+        printf "[ERROR]: $2\n"
+        echo "[ERROR]: $2" >> $LOGGING_FILE
+    elif [ $1 == warn ]; then
+        printf "[WARNING]: $2\n"
+        echo "[WARNING]: $2" >> $LOGGING_FILE
+    elif [ $1 == log ]; then
+        printf "[LOG]: $2\n"
+        echo "[LOG]: $2" >> $LOGGING_FILE
+    fi
+}
+
 
 # Function to check if a command is available
 command_exists() {
@@ -33,28 +55,28 @@ create_note() {
     fi
 
     if [ -z "$note_name" ]; then
-        echo "Error: Note name cannot be empty."
+        echo "  Note name cannot be empty."
         return
     fi
 
     if [ -z "$category" ]; then
         note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
-        touch "$note_path" || { echo "Error: Unable to create note file."; return; }
+        touch "$note_path" || { log_message err "Unable to create note file."; return; }
     else
         note_path="$NOTES_FOLDER/$category/$note_name.$NOTE_EXTENSION"
         if [ ! -d "$NOTES_FOLDER/$category" ]; then
-            echo "Category folder does not exist. Creating..."
-            mkdir -p "$NOTES_FOLDER/$category" || { echo "Error: Unable to create category folder."; return; }
+            log_message warn "Category folder does not exist. Creating..."
+            mkdir -p "$NOTES_FOLDER/$category" || { log_message err "Unable to create category folder."; return; }
         else
-            echo "Category folder already exists."
+            log_message warn "Category folder already exists."
         fi
     fi
 
-    echo "Note created"
+    log_message log "Note created"
     if command_exists "$EDITOR_NAME"; then
         "$EDITOR_NAME" "$note_path"
     else
-        echo "Error: Editor '$EDITOR_NAME' not found."
+        log_message err "Editor '$EDITOR_NAME' not found."
     fi
 }
 
@@ -62,13 +84,13 @@ create_note() {
 edit_note() {
     if [ $# -eq 1 ]; then
         note_name="$1"
-        note_path="$NOTES_FOLDER/$note_name"
+        note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
     else
         PS3="Select a note to edit: "
         options=($(get_note_list))
         select note_name in "${options[@]}"; do
             if [ -z "$note_name" ]; then
-                echo "Invalid option"
+                echo "[ERROR]: Invalid option"
                 return
             fi
             note_path="$NOTES_FOLDER/$note_name"
@@ -78,13 +100,13 @@ edit_note() {
 
     if [ -f "$note_path" ]; then
         if command_exists "$EDITOR_NAME"; then
-            "$EDITOR_NAME" "$note_path" || { echo "Error: Unable to open note file."; return; }
-            echo "Note edited: $note_path"
+            "$EDITOR_NAME" "$note_path" || { log_message err "Unable to open note file."; return; }
+            log_message log "Note edited: $note_path"
         else
-            echo "Error: Editor '$EDITOR_NAME' not found."
+            log_message err "Editor '$EDITOR_NAME' not found."
         fi
     else
-        echo "Error: Note '$note_name' not found."
+        log_message err "Note '$note_name' not found."
     fi
 }
 
@@ -92,16 +114,16 @@ edit_note() {
 remove_note() {
     if [ $# -eq 1 ]; then
         note_name="$1"
-        note_path="$NOTES_FOLDER/$note_name"
+        note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
     else
         PS3="Select a note to remove: "
         options=($(get_note_list))
         select note_name in "${options[@]}"; do
             if [ -z "$note_name" ]; then
-                echo "Invalid option"
+                echo "[ERROR]: Invalid option"
                 return
             fi
-            note_path="$NOTES_FOLDER/$note_name"
+            note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
             break
         done
     fi
@@ -115,16 +137,16 @@ remove_note() {
 
     if [ -f "$note_path" ]; then
         rm "$note_path"
-        echo "Note removed: $note_path"
+        log_message log "Note removed: $note_path"
 
         # Check if the category should be removed
         category=$(dirname "$note_path")
         if [ "$REMOVE_CATEGORY_OPTION" = true ] && [ -z "$(ls -A "$category")" ]; then
             rmdir "$category"
-            echo "Category removed: $category"
+            log_message log "Category removed: $category"
         fi
     else
-        echo "Error: Note '$note_name' not found."
+        log_message err "Note '$note_name' not found."
     fi
 }
 
@@ -143,7 +165,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
 
         # Ensure the folder exists or create it
         if [ ! -d "$NOTES_FOLDER" ]; then
-            echo "Notes folder does not exist. Creating..."
+            log_message log "Notes folder does not exist. Creating..."
             mkdir -p "$NOTES_FOLDER"
             break
         else
