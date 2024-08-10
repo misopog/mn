@@ -6,31 +6,30 @@
 CONFIG_FILE="$HOME/.config/mn/mnrc"
 LOGGING_FILE="$HOME/.cache/mn.log"
 
-    if [[ -e $LOGGING_FILE ]]; then
-        printf "\n" >> $LOGGING_FILE
-    else
-        touch $LOGGING_FILE
-    fi
+if [[ -e $LOGGING_FILE ]]; then
+    printf "\n" >>"$LOGGING_FILE"
+else
+    touch "$LOGGING_FILE"
+fi
 
 # Logging
 log_message() {
 
-    if [ $1 == err ]; then
-        printf "[ERROR]: $2\n"
-        echo "[ERROR]: $2" >> $LOGGING_FILE
-    elif [ $1 == warn ]; then
-        printf "[WARNING]: $2\n"
-        echo "[WARNING]: $2" >> $LOGGING_FILE
-    elif [ $1 == log ]; then
-        printf "$2\n"
-        echo "[LOG]: $2" >> $LOGGING_FILE
+    if [ "$1" == err ]; then
+        printf '%s' "[ERROR]: $2\n"
+        echo "[ERROR]: $2" >>"$LOGGING_FILE"
+    elif [ "$1" == warn ]; then
+        printf '%s' "[WARNING]: $2\n"
+        echo "[WARNING]: $2" >>"$LOGGING_FILE"
+    elif [ "$1" == log ]; then
+        printf '%s' "$2\n"
+        echo "[LOG]: $2" >>"$LOGGING_FILE"
     fi
 }
 
-
 # Function to check if a command is available
 command_exists() {
-    command -v "$1" > /dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1
 }
 
 # Function to get the list of notes
@@ -62,12 +61,18 @@ create_note() {
 
     if [ -z "$category" ]; then
         note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
-        touch "$note_path" || { log_message err "Unable to create note file."; return; }
+        touch "$note_path" || {
+            log_message err "Unable to create note file."
+            return
+        }
     else
         note_path="$NOTES_FOLDER/$category/$note_name.$NOTE_EXTENSION"
         if [ ! -d "$NOTES_FOLDER/$category" ]; then
             log_message warn "Category folder does not exist. Creating..."
-            mkdir -p "$NOTES_FOLDER/$category" || { log_message err "Unable to create category folder."; return; }
+            mkdir -p "$NOTES_FOLDER/$category" || {
+                log_message err "Unable to create category folder."
+                return
+            }
         else
             log_message warn "Category folder already exists."
         fi
@@ -88,7 +93,7 @@ edit_note() {
         note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
     else
         PS3="Select a note to edit: "
-        options=($(get_note_list))
+        options=("$(get_note_list)")
         select note_name in "${options[@]}"; do
             if [ -z "$note_name" ]; then
                 echo "[ERROR]: Invalid option"
@@ -101,7 +106,10 @@ edit_note() {
 
     if [ -f "$note_path" ]; then
         if command_exists "$EDITOR_NAME"; then
-            "$EDITOR_NAME" "$note_path" || { log_message err "Unable to open note file."; return; }
+            "$EDITOR_NAME" "$note_path" || {
+                log_message err "Unable to open note file."
+                return
+            }
             log_message log "Note edited: $note_path"
         else
             log_message err "Editor '$EDITOR_NAME' not found."
@@ -118,7 +126,7 @@ remove_note() {
         note_path="$NOTES_FOLDER/$note_name.$NOTE_EXTENSION"
     else
         PS3="Select a note to remove: "
-        options=($(get_note_list))
+        options=("$(get_note_list)")
         select note_name in "${options[@]}"; do
             if [ -z "$note_name" ]; then
                 echo "[ERROR]: Invalid option"
@@ -130,11 +138,11 @@ remove_note() {
     fi
 
     # Confirm deletion
-        read -p "Are you sure you want to remove $note_name? (y/n): " confirm
-        if [ "$confirm" != "y" ]; then
-            log_message log "Removal canceled."
-            return
-        fi
+    read -r -p "Are you sure you want to remove $note_name? (y/n): " confirm
+    if [ "$confirm" != "y" ]; then
+        log_message log "Removal canceled."
+        return
+    fi
 
     if [ -f "$note_path" ]; then
         rm "$note_path"
@@ -180,34 +188,35 @@ if [ ! -f "$CONFIG_FILE" ]; then
     read -r EDITOR_NAME
 
     # Save configuration with NOTES_FOLDER and EDITOR_NAME
-    echo "NOTES_FOLDER=\"$NOTES_FOLDER\"" > "$CONFIG_FILE"
-    echo "EDITOR_NAME=\"$EDITOR_NAME\"" >> "$CONFIG_FILE"
-    echo "REMOVE_CATEGORY_OPTION="false"" >> "$CONFIG_FILE"
-    echo "NOTE_EXTENSION="md"" >> "$CONFIG_FILE"
+    echo "NOTES_FOLDER=\"$NOTES_FOLDER\"" >"$CONFIG_FILE"
+    echo "EDITOR_NAME=\"$EDITOR_NAME\"" >>"$CONFIG_FILE"
+    echo "REMOVE_CATEGORY_OPTION=false" >>"$CONFIG_FILE"
+    echo "NOTE_EXTENSION=md" >>"$CONFIG_FILE"
     echo "Configuration saved in $CONFIG_FILE"
-   
+
     log_message log "Configuration wizard completed with the notes folder $NOTES_FOLDER and the selected editor $EDITOR_NAME"
     exit 0
 fi
 
 # Load configuration
+#shellcheck source=/dev/null
 source "$CONFIG_FILE"
 
 # Handle command-line arguments
 if [ $# -ge 1 ]; then
     case $1 in
-        new)
-            create_note "${@:2}"
-            ;;
-        edit)
-            edit_note "${@:2}"
-            ;;
-        rm)
-            remove_note "${@:2}"
-            ;;
-        *)
-            echo "Invalid command. Usage: mn [new|edit|rm] [options]"
-            ;;
+    new)
+        create_note "${@:2}"
+        ;;
+    edit)
+        edit_note "${@:2}"
+        ;;
+    rm)
+        remove_note "${@:2}"
+        ;;
+    *)
+        echo "Invalid command. Usage: mn [new|edit|rm] [options]"
+        ;;
     esac
 else
     # If no command-line arguments, display the menu
